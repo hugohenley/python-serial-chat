@@ -3,14 +3,18 @@
 
 import json
 import serial
+import time
+import thread
+from readserial import read_serial
 from mensagem import cria_mensagem
+from Queue import Queue
 
-ser = serial.Serial(port='/dev/ttyUSB1',
+ser = serial.Serial(port='/dev/ttyUSB0',
             baudrate = 9600,
             bytesize = serial.EIGHTBITS,
             parity = serial.PARITY_NONE,
             stopbits = serial.STOPBITS_TWO,
-            timeout = 0,
+            timeout = None,
             xonxoff = True,
             rtscts = False)
 
@@ -79,50 +83,12 @@ def envia_mensagem(request):
     return 200, conteudo, 'application/json;charset=utf-8'
 
 def atualizacao(request):
-    mensagem = []
-    reading = True
-    while reading:
-        print "Lendo"
-        c = ser.read(1)
-        print c
-        if not c:
-            print "Nada enviado"
-            reading = False
-        else:
-            print "Lendo o que foi enviado"
-            mensagem.append(c)
-            if ord(c) == 4:
-                reading = False
-    if mensagem:
-        print "Chegou mensagem!"
-        origem = ''
-        cabecalho = mensagem[0]
-        ord_mensagem = ord(mensagem[0])
-        binario = bin(ord_mensagem)
-        if len(binario) == 5:
-            lista = list(binario)
-            lista.insert(2,'0')
-            binario = ''.join(lista)
-        elif len(binario) == 4:
-            lista = list(binario)
-            lista.insert(2,'0')
-            lista.insert(3,'0')
-            binario = ''.join(lista)
-        bit_origem_1 = ''.join(binario[2])
-        bit_origem_2 = ''.join(binario[3])
-        origem = bit_origem_1 + bit_origem_2
-        
-        msg = []
-        for i in mensagem:
-            indice = mensagem.index(i)
-            if indice % 2 != 0:
-                msg.append(i)
-        msg.pop()
-        msg_final = ''.join(msg)
-        dados = {'mensagens': [{'origem': origem, 'mensagem': msg_final}]}
-        conteudo = json.dumps(dados)
-        return 200, conteudo, 'application/json;charset=utf-8'
-    else:
-        dados = {'mensagens': [{'origem': '01', 'mensagem': 'Sem mensagem'}]}
-        conteudo = json.dumps(dados)
-        return 200, conteudo, 'application/json;charset=utf-8'
+    leituraresult= Queue.Queue()
+    leitutaresult.put(result)
+    leitura = thread.start_new_thread(read_serial, ())
+    r = leituraresult.get()
+    print r
+#    dados = {'mensagens': [{'origem': read[0], 'mensagem': read[1]}]}
+
+    conteudo = json.dumps(dados)
+    return 200, conteudo, 'application/json;charset=utf-8'
